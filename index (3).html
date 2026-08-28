@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CET6 Master V3 · 自定义学习计划</title>
+<meta name="description" content="CET-6 六级一站式学习工作台：词汇、听力、阅读、翻译、写作、模考、错题本与学习进度。">
+<style>
+:root{
+  --bg:#0b1020; --panel:#11182b; --panel2:#17223b; --line:#263550;
+  --text:#edf3ff; --muted:#9fb0cf; --accent:#7da2ff; --green:#48d391;
+  --yellow:#ffd36f; --red:#ff7384; --purple:#c18cff; --cyan:#64d8ff;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+.app{height:100%;display:grid;grid-template-rows:58px 1fr}
+.top{display:flex;align-items:center;gap:12px;padding:0 16px;border-bottom:1px solid var(--line);background:#0d1426}
+.brand{font-size:19px;font-weight:900}.brand span{color:var(--accent)}
+.spacer{flex:1}.chip{border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:12px;color:var(--muted)}
+.btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:9px;padding:8px 11px}
+.btn:hover{filter:brightness(1.08)}.btn.primary{background:var(--accent);color:#081224;border-color:transparent;font-weight:800}.btn.good{background:var(--green);color:#062016;border-color:transparent;font-weight:800}
+.layout{display:grid;grid-template-columns:250px 1fr;min-height:0}
+.sidebar{border-right:1px solid var(--line);background:#0e1628;padding:12px;display:flex;flex-direction:column;min-height:0}
+.nav{padding:10px 12px;border-radius:9px;border:1px solid transparent;color:var(--muted);background:transparent;text-align:left;margin-bottom:5px}
+.nav:hover,.nav.active{background:var(--panel2);border-color:var(--line);color:var(--text)}
+.sidebox{margin-top:auto;border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:12px}
+.bar{height:7px;background:#202e4a;border-radius:999px;overflow:hidden}.bar>div{height:100%;background:linear-gradient(90deg,var(--accent),var(--cyan));width:0}
+main{overflow:auto;padding:16px;min-width:0}.view{display:none}.view.active{display:block}
+h1,h2,h3{margin-top:0}.muted{color:var(--muted)}.small{font-size:13px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}.stat{font-size:28px;font-weight:900;margin-top:8px}
+.hero{display:grid;grid-template-columns:1.3fr .7fr;gap:12px}.hero .card:first-child{background:linear-gradient(135deg,#14213c,#151a37)}
+.task{display:flex;gap:10px;padding:10px 0;border-bottom:1px dashed var(--line)}.task:last-child{border:0}
+.badge{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:4px 8px;font-size:12px;color:var(--muted)}
+.skill{padding:12px;border:1px solid var(--line);border-radius:12px;background:#0f1729}.skill strong{display:block;margin-bottom:6px}
+.skillbar{height:6px;background:#202d48;border-radius:999px;overflow:hidden}.skillbar>div{height:100%;background:var(--accent)}
+.module-layout{height:calc(100vh - 90px);display:grid;grid-template-columns:300px 1fr;gap:12px}
+.listpanel,.mainpanel{border:1px solid var(--line);border-radius:14px;background:var(--panel);min-height:0;overflow:hidden}
+.listpanel{overflow:auto;padding:8px}.item{padding:10px;border-radius:9px;color:var(--muted);border:1px solid transparent;margin-bottom:5px;cursor:pointer}
+.item:hover,.item.active{background:var(--panel2);color:var(--text);border-color:var(--line)}.item.done:after{content:" ✓";color:var(--green)}
+.panelhead{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line)}.grow{flex:1}
+.contentpad{padding:18px;overflow:auto;line-height:1.7;height:100%}
+.wordcard{min-height:330px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;border:1px solid var(--line);border-radius:16px;background:linear-gradient(145deg,#101a31,#11182b);padding:24px}
+.word{font-size:34px;font-weight:900}.phonetic{color:var(--muted);margin:6px 0 18px}.meaning{font-size:20px;margin:10px 0}.example{color:var(--muted);max-width:700px}
+.controls{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+.question{border:1px solid var(--line);border-radius:12px;padding:14px;margin:10px 0;background:#0f1729}.option{display:block;padding:8px 10px;border:1px solid var(--line);border-radius:8px;margin:6px 0}
+.feedback{margin-top:8px}.goodtxt{color:var(--green)}.badtxt{color:var(--red)}
+textarea.answer{width:100%;min-height:180px;resize:vertical;background:#08101e;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:12px;line-height:1.6}
+.timer{font-size:34px;font-weight:900;font-variant-numeric:tabular-nums}.examblock{border:1px solid var(--line);border-radius:12px;padding:14px;margin:10px 0}
+.mistake{border-left:3px solid var(--red);padding:12px 14px;background:var(--panel);margin:10px 0;border-radius:8px}
+.note{border-left:3px solid var(--accent);background:#101a30;padding:12px 14px;border-radius:8px;margin:12px 0}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}.day{border:1px solid var(--line);border-radius:10px;padding:10px;min-height:90px}.day.today{border-color:var(--accent);background:#111d34}.day.done{box-shadow:inset 0 0 0 1px var(--green)}
+.kicker{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+@media(max-width:950px){
+ .layout{grid-template-columns:72px 1fr}.nav span,.sidebox{display:none}.nav{text-align:center;padding:10px 4px}
+ .grid4,.grid3,.grid2,.hero,.module-layout,.week{grid-template-columns:1fr}
+ .module-layout{height:auto}.listpanel{max-height:260px}
+}
+
+.vocab-shell{display:grid;grid-template-rows:auto auto 1fr;gap:12px;min-height:calc(100vh - 90px)}
+.vocab-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.vocab-stat{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:14px}
+.vocab-stat .n{font-size:25px;font-weight:900;margin-top:5px}
+.vocab-tabs{display:flex;gap:7px;flex-wrap:wrap}
+.vtab{border:1px solid var(--line);background:var(--panel);color:var(--muted);border-radius:9px;padding:8px 11px}
+.vtab.active{background:var(--accent);color:#081224;border-color:transparent;font-weight:800}
+.vocab-pane{display:none}.vocab-pane.active{display:block}
+.lex-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.field{background:#08101e;color:var(--text);border:1px solid var(--line);border-radius:9px;padding:9px 10px;outline:none}
+.field:focus{border-color:var(--accent)}
+.lex-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px}
+.lex-table{width:100%;border-collapse:collapse;min-width:760px}
+.lex-table th,.lex-table td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.lex-table th{position:sticky;top:0;background:#10192c;color:var(--muted);font-size:12px;z-index:1}
+.lex-word{font-weight:800;font-size:15px}.lex-meaning{color:var(--muted)}
+.iconbtn{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:7px;padding:5px 7px}
+.pager{display:flex;gap:8px;justify-content:center;align-items:center;margin-top:10px}
+.study-card{min-height:390px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;border:1px solid var(--line);border-radius:16px;background:linear-gradient(145deg,#101a31,#11182b);padding:28px}
+.study-word{font-size:42px;font-weight:900}.study-phon{color:var(--muted);margin:7px 0 18px}.study-meaning{font-size:21px;max-width:750px}
+.dictation-board{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.dict-head,.dict-row{display:grid;grid-template-columns:56px minmax(220px,1fr) minmax(260px,1fr) 150px;align-items:stretch}
+.dict-head{background:#10192c;color:var(--muted);font-size:12px;font-weight:700}
+.dict-head>div,.dict-row>div{padding:10px 12px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.dict-head>div:last-child,.dict-row>div:last-child{border-right:0}
+.dict-prompt{font-weight:700;line-height:1.55}.dict-answer input{width:100%;background:#08101e;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:9px 10px;outline:none}
+.dict-result{font-size:13px}.okrow{background:rgba(72,211,145,.06)}.badrow{background:rgba(255,115,132,.06)}
+.source-note{border-left:3px solid var(--cyan);background:#101a30;padding:11px 13px;border-radius:8px;color:var(--muted)}
+.loading-box{padding:38px;text-align:center;color:var(--muted)}
+@media(max-width:950px){
+ .vocab-summary{grid-template-columns:repeat(2,1fr)}
+ .dict-head,.dict-row{grid-template-columns:42px 1fr 1fr}
+ .dict-head>div:nth-child(4),.dict-row>div:nth-child(4){grid-column:2/4;border-top:0}
+}
+
+
+.plan-grid{display:grid;grid-template-columns:160px repeat(5,minmax(110px,1fr));gap:8px;align-items:end}
+.plan-field label{display:block;color:var(--muted);font-size:12px;margin-bottom:5px}
+.plan-field input{width:100%;background:#08101e;color:var(--text);border:1px solid var(--line);border-radius:9px;padding:9px 10px;outline:none}
+.plan-field input:focus{border-color:var(--accent)}
+.plan-summary{margin-top:10px;color:var(--muted);font-size:13px}
+.progress-line{height:6px;background:#202e4a;border-radius:999px;overflow:hidden;margin-top:6px;min-width:180px}
+.progress-line>div{height:100%;background:var(--green)}
+@media(max-width:950px){.plan-grid{grid-template-columns:1fr 1fr}}
+
+</style>
+</head>
+<body>
+<div class="app">
+<header class="top">
+  <div class="brand">CET6 <span>Master V3</span></div>
+  <div class="chip">六级一站式学习工作台</div>
+  <div class="spacer"></div>
+  <div class="chip" id="streakChip">🔥 0 天连续学习</div>
+  <button class="btn primary" onclick="showView('today')">今日学习</button>
+</header>
+
+<div class="layout">
+<aside class="sidebar">
+  <button class="nav active" data-view="home" onclick="showView('home')">🏠 <span>学习主页</span></button>
+  <button class="nav" data-view="today" onclick="showView('today')">✅ <span>今日任务</span></button>
+  <button class="nav" data-view="vocab" onclick="showView('vocab')">🧠 <span>词汇</span></button>
+  <button class="nav" data-view="listening" onclick="showView('listening')">🎧 <span>听力</span></button>
+  <button class="nav" data-view="reading" onclick="showView('reading')">📖 <span>阅读</span></button>
+  <button class="nav" data-view="translation" onclick="showView('translation')">🌏 <span>翻译</span></button>
+  <button class="nav" data-view="writing" onclick="showView('writing')">✍️ <span>写作</span></button>
+  <button class="nav" data-view="mock" onclick="showView('mock')">⏱️ <span>模考</span></button>
+  <button class="nav" data-view="mistakes" onclick="showView('mistakes')">📕 <span>错题本</span></button>
+  <div class="sidebox">
+    <div style="display:flex;justify-content:space-between;margin-bottom:7px"><span>今日完成</span><span id="todayPct">0%</span></div>
+    <div class="bar"><div id="todayBar"></div></div>
+  </div>
+</aside>
+
+<main>
+<section class="view active" id="view-home">
+  <div class="hero">
+    <div class="card">
+      <div class="kicker">CET-6 DAILY SYSTEM</div>
+      <h1 style="margin:8px 0 8px">每天打开一次，知道今天该做什么。</h1>
+      <p class="muted">词汇、听力、阅读、翻译、写作、模考集中在同一个工作台；进度自动保存在浏览器。</p>
+      <div style="margin-top:18px"><button class="btn good" onclick="showView('today')">开始今日学习</button></div>
+    </div>
+    <div class="card">
+      <div class="kicker">TODAY</div>
+      <div class="timer" id="dateLabel" style="font-size:24px;margin:8px 0"></div>
+      <div id="homeTodayTasks"></div>
+    </div>
+  </div>
+
+  <div class="grid4" style="margin-top:12px">
+    <div class="card"><div class="muted">掌握词汇</div><div class="stat" id="statWords">0</div></div>
+    <div class="card"><div class="muted">练习完成</div><div class="stat" id="statPractice">0</div></div>
+    <div class="card"><div class="muted">模考最高分</div><div class="stat" id="statMock">0%</div></div>
+    <div class="card"><div class="muted">连续学习</div><div class="stat" id="statStreak">0</div></div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <h2>能力雷达</h2>
+    <div class="grid3">
+      <div class="skill"><strong>词汇</strong><div class="skillbar"><div id="skillVocab"></div></div></div>
+      <div class="skill"><strong>听力</strong><div class="skillbar"><div id="skillListening"></div></div></div>
+      <div class="skill"><strong>阅读</strong><div class="skillbar"><div id="skillReading"></div></div></div>
+      <div class="skill"><strong>翻译</strong><div class="skillbar"><div id="skillTranslation"></div></div></div>
+      <div class="skill"><strong>写作</strong><div class="skillbar"><div id="skillWriting"></div></div></div>
+      <div class="skill"><strong>模考</strong><div class="skillbar"><div id="skillMock"></div></div></div>
+    </div>
+  </div>
+</section>
+
+
+<section class="view" id="view-today">
+  <h1>学习计划</h1>
+  <p class="muted">每一天都可以单独设置目标。比如今天背 20 个，明天背 50 个；计划会按日期保存。</p>
+
+  <div class="card" style="margin-bottom:12px">
+    <div class="panelhead" style="padding:0 0 12px;border:0">
+      <strong>按日期规划</strong>
+      <div class="grow"></div>
+      <button class="btn" onclick="setPlannerToday()">今天</button>
+      <button class="btn" onclick="setPlannerTomorrow()">明天</button>
+      <button class="btn primary" onclick="saveDailyPlan()">保存计划</button>
+    </div>
+
+    <div class="plan-grid">
+      <div class="plan-field">
+        <label>日期</label>
+        <input type="date" id="planDate" onchange="loadPlanForm()">
+      </div>
+      <div class="plan-field">
+        <label>背诵单词 / 个</label>
+        <input type="number" id="planVocab" min="0" max="500" step="1">
+      </div>
+      <div class="plan-field">
+        <label>听力 / 组</label>
+        <input type="number" id="planListening" min="0" max="20" step="1">
+      </div>
+      <div class="plan-field">
+        <label>阅读 / 篇</label>
+        <input type="number" id="planReading" min="0" max="20" step="1">
+      </div>
+      <div class="plan-field">
+        <label>翻译 / 段</label>
+        <input type="number" id="planTranslation" min="0" max="20" step="1">
+      </div>
+      <div class="plan-field">
+        <label>写作 / 次</label>
+        <input type="number" id="planWriting" min="0" max="20" step="1">
+      </div>
+    </div>
+    <div class="plan-summary" id="planSummary"></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h2 id="todayTaskTitle">今日任务清单</h2>
+      <div id="todayChecklist"></div>
+    </div>
+    <div class="card">
+      <h2>本周记录</h2>
+      <div class="week" id="weekView"></div>
+    </div>
+  </div>
+</section>
+
+
+<section class="view" id="view-vocab">
+<div class="vocab-shell">
+  <div>
+    <h1 style="margin-bottom:6px">CET-6 词汇中心</h1>
+    <div class="source-note">
+      《全国大学英语四、六级考试大纲（2016年修订版）》的官方词表共收录 <strong style="color:var(--text)">5418 个词目</strong>，
+      分四级和六级两个级别，六级词以 ★ 标注。官方表只列词形，不给释义、不注读音。
+      本站为背诵和默写额外加载带中文释义/音标的学习数据，因此“学习词库条目数”会大于 5418。
+    </div>
+  </div>
+
+  <div class="vocab-summary">
+    <div class="vocab-stat"><div class="muted small">官方考纲词目</div><div class="n">5,418</div></div>
+    <div class="vocab-stat"><div class="muted small">释义增强学习库</div><div class="n" id="loadedVocabCount">加载中</div></div>
+    <div class="vocab-stat"><div class="muted small">已掌握</div><div class="n" id="knownCount">0</div></div>
+    <div class="vocab-stat"><div class="muted small">待复习</div><div class="n" id="unknownCount">0</div></div>
+  </div>
+
+  <div>
+    <div class="vocab-tabs">
+      <button class="vtab active" data-vtab="overview" onclick="switchVocabTab('overview')">词库总览</button>
+      <button class="vtab" data-vtab="lexicon" onclick="switchVocabTab('lexicon')">完整词库</button>
+      <button class="vtab" data-vtab="study" onclick="switchVocabTab('study')">背诵模式</button>
+      <button class="vtab" data-vtab="dictation" onclick="switchVocabTab('dictation')">双向默写</button>
+    </div>
+
+    <div class="vocab-pane active" id="vocab-overview" style="margin-top:12px">
+      <div class="grid2">
+        <div class="card">
+          <h2>你的背词进度</h2>
+          <div style="display:flex;justify-content:space-between"><span>已掌握 / 官方 5418 词目</span><strong id="vocabProgressText">0%</strong></div>
+          <div class="bar" style="margin-top:9px"><div id="vocabProgressBar"></div></div>
+          <div class="grid2" style="margin-top:14px">
+            <div class="skill"><strong id="overviewKnown">0</strong><span class="muted small">已掌握</span></div>
+            <div class="skill"><strong id="overviewUnknown">0</strong><span class="muted small">待复习</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <h2>建议使用顺序</h2>
+          <div class="task"><b>①</b><div><strong>完整词库</strong><br><span class="muted small">搜索、浏览、标记重点词。</span></div></div>
+          <div class="task"><b>②</b><div><strong>背诵模式</strong><br><span class="muted small">每天 20–50 个，认识/不认识即时分类。</span></div></div>
+          <div class="task"><b>③</b><div><strong>双向默写</strong><br><span class="muted small">中译英检查拼写，英译中检查词义。</span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vocab-pane" id="vocab-lexicon" style="margin-top:12px">
+      <div class="card">
+        <div class="lex-toolbar">
+          <input class="field" id="lexSearch" style="min-width:270px" placeholder="搜索英文或中文释义…" oninput="renderLexicon(true)">
+          <select class="field" id="lexFilter" onchange="renderLexicon(true)">
+            <option value="all">全部词汇</option>
+            <option value="known">已掌握</option>
+            <option value="unknown">待复习</option>
+            <option value="starred">我的重点词</option>
+          </select>
+          <span class="badge" id="lexResultCount">0 条</span>
+        </div>
+        <div id="lexiconLoading" class="loading-box">正在加载完整学习词库…</div>
+        <div id="lexiconArea" style="display:none">
+          <div class="lex-wrap">
+            <table class="lex-table">
+              <thead><tr><th>#</th><th>单词</th><th>音标</th><th>中文释义</th><th>状态</th></tr></thead>
+              <tbody id="lexBody"></tbody>
+            </table>
+          </div>
+          <div class="pager">
+            <button class="btn" onclick="lexPrev()">上一页</button>
+            <span id="lexPageText">1 / 1</span>
+            <button class="btn" onclick="lexNext()">下一页</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vocab-pane" id="vocab-study" style="margin-top:12px">
+      <div class="card">
+        <div class="lex-toolbar">
+          <select class="field" id="studySource">
+            <option value="all">全词库随机</option>
+            <option value="unknown">只背待复习</option>
+            <option value="starred">只背重点词</option>
+          </select>
+          <select class="field" id="studyCount">
+            <option value="goal" selected>按今日剩余目标</option>
+            <option value="20">20 个</option>
+            <option value="50">50 个</option>
+            <option value="100">100 个</option>
+          </select>
+          <button class="btn primary" onclick="startStudySession()">开始/重新生成</button>
+          <span class="badge" id="vocabCounter">0 / 0</span>
+        </div>
+        <div class="study-card">
+          <div class="study-word" id="word">等待加载词库</div>
+          <div class="study-phon" id="phonetic"></div>
+          <div class="study-meaning" id="meaning" style="display:none"></div>
+          <div class="controls">
+            <button class="btn" onclick="speakWord()">🔊 发音</button>
+            <button class="btn primary" onclick="revealWord()">显示释义</button>
+            <button class="btn" onclick="rateWord(false)">不认识</button>
+            <button class="btn good" onclick="rateWord(true)">认识</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vocab-pane" id="vocab-dictation" style="margin-top:12px">
+      <div class="card">
+        <div class="lex-toolbar">
+          <select class="field" id="dictMode">
+            <option value="zh-en">中译英：左中文 → 右侧默写英文</option>
+            <option value="en-zh">英译中：左英文 → 右侧默写中文</option>
+          </select>
+          <select class="field" id="dictSource">
+            <option value="all">全词库随机</option>
+            <option value="unknown">待复习词</option>
+            <option value="starred">重点词</option>
+          </select>
+          <select class="field" id="dictCount">
+            <option value="10">10 个</option>
+            <option value="20" selected>20 个</option>
+            <option value="50">50 个</option>
+          </select>
+          <button class="btn primary" onclick="startDictation()">生成默写</button>
+          <button class="btn good" onclick="submitDictation()">提交检测</button>
+          <span class="badge" id="dictScore">尚未检测</span>
+        </div>
+        <div class="note">
+          中译英按拼写自动判定；英译中允许常见同义表达，系统会用中文关键词做宽松匹配，并在提交后显示参考释义。
+        </div>
+        <div id="dictEmpty" class="loading-box">点击“生成默写”开始。</div>
+        <div id="dictBoard" class="dictation-board" style="display:none">
+          <div class="dict-head"><div>#</div><div>左侧题目</div><div>右侧默写</div><div>检测结果</div></div>
+          <div id="dictRows"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+
+<section class="view" id="view-listening">
+  <h1>听力训练</h1>
+  <p class="muted">使用浏览器语音朗读原创练习材料。先听，再答题，最后看文本。</p>
+  <div class="card">
+    <div class="panelhead" style="padding:0 0 12px;border:0"><strong id="listenTitle"></strong><div class="grow"></div><button class="btn primary" onclick="playListening()">▶ 播放</button><button class="btn" onclick="toggleTranscript()">查看/隐藏文本</button></div>
+    <div id="listenTranscript" class="note" style="display:none"></div>
+    <div id="listenQuestions"></div>
+    <button class="btn good" onclick="checkListening()">提交听力</button>
+    <div id="listenScore" style="margin-top:10px;font-weight:800"></div>
+  </div>
+</section>
+
+<section class="view" id="view-reading">
+  <h1>阅读训练</h1>
+  <p class="muted">原创短文 + 题目，练定位、主旨、推断与词义。</p>
+  <div class="card">
+    <h2 id="readingTitle"></h2>
+    <div id="readingPassage" style="line-height:1.8"></div>
+    <div id="readingQuestions"></div>
+    <button class="btn good" onclick="checkReading()">提交阅读</button>
+    <div id="readingScore" style="margin-top:10px;font-weight:800"></div>
+  </div>
+</section>
+
+<section class="view" id="view-translation">
+  <h1>翻译训练</h1>
+  <div class="card">
+    <h2>中译英</h2>
+    <p id="translationPrompt"></p>
+    <textarea class="answer" id="translationAnswer" placeholder="在这里完成你的翻译……"></textarea>
+    <div style="margin-top:10px"><button class="btn good" onclick="saveTranslation()">保存本次练习</button><button class="btn" onclick="toggleTranslationRef()">查看参考表达</button></div>
+    <div id="translationRef" class="note" style="display:none"></div>
+  </div>
+</section>
+
+<section class="view" id="view-writing">
+  <h1>写作训练</h1>
+  <div class="grid2">
+    <div class="card">
+      <h2>今日题目</h2>
+      <p id="writingPrompt"></p>
+      <div class="note"><strong>建议结构：</strong><br>开头表明立场 → 2 个主体段展开理由/例子 → 结尾总结并提出建议。</div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between"><h2>作文区</h2><span class="badge" id="wordCount">0 words</span></div>
+      <textarea class="answer" id="writingAnswer" style="min-height:300px" oninput="countWords()" placeholder="Write your essay here..."></textarea>
+      <div style="margin-top:10px"><button class="btn good" onclick="saveWriting()">保存作文</button><button class="btn" onclick="toggleWritingGuide()">写作提示</button></div>
+      <div id="writingGuide" class="note" style="display:none"></div>
+    </div>
+  </div>
+</section>
+
+<section class="view" id="view-mock">
+  <h1>迷你模考</h1>
+  <p class="muted">这不是完整真题，而是一套用于日常自测的原创迷你卷。</p>
+  <div class="card">
+    <div class="panelhead" style="padding:0 0 12px;border:0"><strong>Mini Mock · Set A</strong><div class="grow"></div><div class="timer" id="mockTimer">20:00</div><button class="btn primary" onclick="startMock()">开始计时</button></div>
+    <div id="mockQuestions"></div>
+    <button class="btn good" onclick="submitMock()">提交模考</button>
+    <div id="mockScore" style="margin-top:10px;font-weight:900;font-size:20px"></div>
+  </div>
+</section>
+
+<section class="view" id="view-mistakes">
+  <h1>错题本</h1>
+  <p class="muted">听力、阅读和模考中做错的题会自动收录。</p>
+  <div id="mistakeList"></div>
+</section>
+
+</main>
+</div>
+</div>
+
+<script>
+const KEY="cet6_master_v1";
+const todayKey=new Date().toISOString().slice(0,10);
+let state=JSON.parse(localStorage.getItem(KEY)||"null")||{
+ knownWords:[],unknownWords:[],practice:0,mockBest:0,mistakes:[],history:{},scores:{listening:0,reading:0,translation:0,writing:0,mock:0}
+};
+if(!state.history[todayKey]) state.history[todayKey]={vocab:false,listening:false,reading:false,translation:false,writing:false};
+state.knownWords ||= [];
+state.unknownWords ||= [];
+state.starredWords ||= [];
+state.vocabTests ||= {count:0,best:0};
+state.plans ||= {};
+state.history[todayKey].vocabLearned ||= 0;
+
+
+const VOCAB_URLS=[
+ "https://cdn.jsdelivr.net/gh/wangshiyuan-nku/cet6-practice@master/source_materials/cet6_vocabulary.json",
+ "https://raw.githubusercontent.com/wangshiyuan-nku/cet6-practice/master/source_materials/cet6_vocabulary.json"
+];
+const fallbackVocab=[
+ {word:"allocate",phonetic:"/ˈæləkeɪt/",meaning:"分配；拨给"},
+ {word:"ambiguous",phonetic:"/æmˈbɪɡjuəs/",meaning:"模棱两可的；含糊的"},
+ {word:"anticipate",phonetic:"/ænˈtɪsɪpeɪt/",meaning:"预期；预料"},
+ {word:"constraint",phonetic:"/kənˈstreɪnt/",meaning:"限制；约束"},
+ {word:"empirical",phonetic:"/ɪmˈpɪrɪkl/",meaning:"经验性的；实证的"},
+ {word:"feasible",phonetic:"/ˈfiːzəbl/",meaning:"可行的"},
+ {word:"integral",phonetic:"/ˈɪntɪɡrəl/",meaning:"不可或缺的；完整的"},
+ {word:"intervention",phonetic:"/ˌɪntəˈvenʃn/",meaning:"干预；介入"},
+ {word:"persistent",phonetic:"/pəˈsɪstənt/",meaning:"持续的；顽固的"},
+ {word:"reinforce",phonetic:"/ˌriːɪnˈfɔːs/",meaning:"加强；巩固"}
+];
+
+let vocabData=[];
+let vocabSession=[];
+let vIndex=0;
+let lexPage=1;
+const LEX_PAGE_SIZE=50;
+let dictationSet=[];
+
+function compactMeaning(raw){
+ const s=String(raw||"").replace(/\u0000/g," ").replace(/\s+/g," ");
+ const chunks=s.match(/[\u3400-\u9fff]{1,12}/g)||[];
+ const stop=new Set(["人名","英文","字母表","一个","一名","表示","因此","由于","原因","自己","没有","时间","通过","真正","使用"]);
+ const out=[];
+ for(const c of chunks){
+   if(stop.has(c)) continue;
+   if(!out.includes(c)) out.push(c);
+   if(out.length>=9) break;
+ }
+ return out.join("；") || s.slice(0,90);
+}
+function normalizeVocabPayload(payload){
+ const list=Array.isArray(payload)?payload:(payload.words||[]);
+ return list.map((x,i)=>({
+   word:String(x.word||x.wordContent||"").trim(),
+   phonetic:String(x.phonetic||x.phonetic_EN||"").trim(),
+   meaning:compactMeaning(x.meaning||x.translation||""),
+   index:x.index||i+1
+ })).filter(x=>x.word);
+}
+async function initVocab(){
+ state.starredWords ||= [];
+ state.vocabTests ||= {count:0,best:0};
+ const cacheKey="cet6_master_vocab_cache_v2";
+ try{
+   const cached=localStorage.getItem(cacheKey);
+   if(cached){
+     const parsed=JSON.parse(cached);
+     if(Array.isArray(parsed)&&parsed.length>1000) vocabData=parsed;
+   }
+ }catch(e){}
+ if(!vocabData.length){
+   for(const url of VOCAB_URLS){
+     try{
+       const controller=new AbortController();
+       const timeout=setTimeout(()=>controller.abort(),10000);
+       const res=await fetch(url,{signal:controller.signal});
+       clearTimeout(timeout);
+       if(!res.ok) throw new Error("HTTP "+res.status);
+       const payload=await res.json();
+       vocabData=normalizeVocabPayload(payload);
+       if(vocabData.length>1000){
+         try{localStorage.setItem(cacheKey,JSON.stringify(vocabData));}catch(e){}
+         break;
+       }
+     }catch(e){ console.warn("Vocabulary source failed",url,e); }
+   }
+ }
+ if(!vocabData.length) vocabData=fallbackVocab.map((x,i)=>({...x,index:i+1}));
+ document.getElementById("loadedVocabCount").textContent=vocabData.length.toLocaleString();
+ document.getElementById("lexiconLoading").style.display="none";
+ document.getElementById("lexiconArea").style.display="block";
+ updateVocabStats();
+ renderLexicon(true);
+ startStudySession();
+}
+
+
+const listening={
+ title:"Campus Innovation Program",
+ transcript:`Good afternoon, everyone. I’m here to introduce the university’s new student innovation program. Unlike previous competitions, the program will run throughout the academic year rather than for a single weekend. Participants will form teams of three to five students and work with a faculty mentor. The university will provide access to laboratories, design software, and a small amount of seed funding. However, teams are expected to define a real problem before proposing a technical solution. At the end of each semester, selected teams will present their progress to a panel of researchers and local entrepreneurs. The program is intended not only to produce new products, but also to help students learn how to communicate ideas, manage uncertainty, and collaborate across disciplines.`,
+ qs:[
+  {q:"How is the new program different from previous competitions?",ops:["It is only for graduate students.","It lasts throughout the academic year.","It offers large financial prizes.","It requires international travel."],a:1},
+  {q:"What must teams do before proposing a technical solution?",ops:["Find a faculty mentor.","Buy design software.","Define a real problem.","Present to entrepreneurs."],a:2},
+  {q:"What is one broader goal of the program?",ops:["To reduce tuition fees.","To replace classroom courses.","To teach collaboration and communication.","To recruit local entrepreneurs."],a:2}
+ ]
+};
+
+const reading={
+ title:"Why Small Habits Often Outperform Ambitious Plans",
+ passage:`People often begin self-improvement projects with ambitious goals. They decide to read fifty books a year, exercise every day, or become fluent in a new language within months. Such goals can be motivating, but they may also create a hidden problem: when progress is slower than expected, people interpret the gap as failure and abandon the effort altogether.
+
+Behavioral researchers have increasingly emphasized a different strategy. Instead of focusing first on dramatic outcomes, individuals can build routines that are easy to repeat. A ten-minute reading session may appear insignificant, yet its value lies in consistency. Repeated actions reduce the mental cost of getting started, and over time they can reshape a person’s sense of identity. Someone who reads every evening begins to think of himself as a reader, making future reading more natural.
+
+This does not mean that large goals are useless. Goals provide direction, while habits provide a mechanism for moving in that direction. The key is to avoid confusing the destination with the daily process. A plan that looks impressive on paper may be less effective than a modest routine that survives busy weeks, low motivation, and unexpected interruptions.`,
+ qs:[
+  {q:"What problem can ambitious goals create?",ops:["They make people read too much.","They can make slow progress feel like failure.","They prevent people from setting routines.","They reduce long-term motivation in every case."],a:1},
+  {q:"Why can a ten-minute reading session be valuable?",ops:["It guarantees rapid improvement.","It is more difficult than long sessions.","Its consistency lowers the cost of starting.","It eliminates the need for goals."],a:2},
+  {q:"According to the passage, what is the relationship between goals and habits?",ops:["Goals give direction; habits provide the process.","Habits are useful only without goals.","Goals and habits serve the same function.","Large goals are always less effective."],a:0},
+  {q:"What is the author’s main point?",ops:["People should avoid planning.","Only tiny goals are worth pursuing.","Sustainable routines often matter more than impressive plans.","Motivation is unnecessary for learning."],a:2}
+ ]
+};
+
+const translation={
+ prompt:"近年来，越来越多的大学开始鼓励学生参加跨学科项目。通过与不同专业的同学合作，学生不仅能够拓宽知识面，还能学习如何从多种角度分析复杂问题。这种经历对于未来的学习和职业发展都具有重要意义。",
+ ref:"In recent years, an increasing number of universities have encouraged students to participate in interdisciplinary projects. By working with classmates from different academic backgrounds, students can not only broaden their knowledge but also learn to analyze complex problems from multiple perspectives. Such experience is of great significance to both their future studies and career development."
+};
+
+const writing={
+ prompt:"Directions: For this part, you are allowed 30 minutes to write an essay on the importance of developing the ability to learn independently. You should write at least 150 words but no more than 200 words.",
+ guide:"可用思路：① 独立学习能帮助学生适应快速变化的知识环境；② 它要求主动设定目标、寻找资源并评估自己的理解；③ 大学可以通过开放课程、项目制学习和反馈机制培养这种能力。尽量使用具体例子，而不是堆砌模板句。"
+};
+
+const mockQs=[
+ {q:"Vocabulary: The evidence is too limited to ______ such a strong conclusion.",ops:["justify","fluctuate","allocate","diminish"],a:0,area:"vocab"},
+ {q:"Grammar: Had the team tested the system earlier, they ______ the problem before launch.",ops:["would discover","would have discovered","discovered","had discovered"],a:1,area:"reading"},
+ {q:"Reading logic: A policy may be popular in the short term but costly in the long term. The sentence mainly highlights ______.",ops:["a contrast over time","a definition","a cause only","a historical fact"],a:0,area:"reading"},
+ {q:"Vocabulary: The schedule is still ______ and may change next week.",ops:["integral","tentative","profound","prevalent"],a:1,area:"vocab"},
+ {q:"Writing: Which sentence is more appropriate for an academic essay?",ops:["This thing is super important.","This issue deserves serious consideration.","You know, it matters a lot.","Everybody totally agrees."],a:1,area:"writing"},
+ {q:"Translation: “从多个角度分析问题” is best rendered as ______.",ops:["analyze problems from multiple perspectives","see problem many ways","watch the problem from sides","analyze many angle problem"],a:0,area:"translation"},
+ {q:"Vocabulary: Regular review helps ______ newly learned information.",ops:["reinforce","offset","derive","fluctuate"],a:0,area:"vocab"},
+ {q:"Logic: If an argument is 'ambiguous', it is ______.",ops:["clearly proven","open to more than one interpretation","scientifically invalid","very detailed"],a:1,area:"reading"},
+ {q:"Writing: A strong conclusion should primarily ______.",ops:["introduce a completely new topic","summarize and reinforce the main position","repeat every sentence exactly","add unrelated evidence"],a:1,area:"writing"},
+ {q:"Vocabulary: Technology is now an ______ part of modern education.",ops:["integral","reluctant","marginal","tentative"],a:0,area:"vocab"}
+];
+
+let timerId=null,timeLeft=1200;
+
+function save(){localStorage.setItem(KEY,JSON.stringify(state));refresh()}
+function showView(name){
+ document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+ document.getElementById("view-"+name).classList.add("active");
+ document.querySelectorAll(".nav").forEach(n=>n.classList.toggle("active",n.dataset.view===name));
+ if(name==="mistakes")renderMistakes();
+}
+function markActive(){
+ state.history[todayKey].lastVisit=true;save()
+}
+
+const DEFAULT_PLAN={vocab:20,listening:1,reading:1,translation:1,writing:1};
+
+function dateKeyLocal(d){
+ const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,"0"),day=String(d.getDate()).padStart(2,"0");
+ return `${y}-${m}-${day}`;
+}
+function ensureHistory(date){
+ if(!state.history[date]) state.history[date]={vocab:false,listening:false,reading:false,translation:false,writing:false,vocabLearned:0};
+ state.history[date].vocabLearned ||= 0;
+ return state.history[date];
+}
+function getPlan(date){
+ return {...DEFAULT_PLAN,...(state.plans?.[date]||{})};
+}
+function activePlanTasks(date){
+ const p=getPlan(date);
+ return ["vocab","listening","reading","translation","writing"].filter(k=>Number(p[k])>0);
+}
+function todayTasks(date=todayKey){
+ const p=getPlan(date);
+ const h=ensureHistory(date);
+ return [
+  ["vocab",`词汇 ${p.vocab} 个`,`${h.vocabLearned||0} / ${p.vocab} 个`,p.vocab],
+  ["listening",`听力 ${p.listening} 组`,"听力训练",p.listening],
+  ["reading",`阅读 ${p.reading} 篇`,"阅读训练",p.reading],
+  ["translation",`翻译 ${p.translation} 段`,"翻译训练",p.translation],
+  ["writing",`写作 ${p.writing} 次`,"写作训练",p.writing]
+ ].filter(x=>Number(x[3])>0);
+}
+function completionFor(date,k){
+ const h=ensureHistory(date),p=getPlan(date);
+ if(Number(p[k])<=0) return true;
+ if(k==="vocab") return (h.vocabLearned||0)>=Number(p.vocab);
+ return !!h[k];
+}
+function syncDateCompletion(date){
+ const h=ensureHistory(date),p=getPlan(date);
+ h.vocab = Number(p.vocab)<=0 || (h.vocabLearned||0)>=Number(p.vocab);
+ ["listening","reading","translation","writing"].forEach(k=>{
+   if(Number(p[k])<=0) h[k]=true;
+ });
+}
+function toggleTask(k){
+ if(k==="vocab") return;
+ const h=ensureHistory(todayKey);
+ h[k]=!h[k];
+ save();renderToday();
+}
+function renderToday(){
+ syncDateCompletion(todayKey);
+ const tasks=todayTasks(todayKey),box=document.getElementById("todayChecklist");
+ box.innerHTML=tasks.length?tasks.map(([k,t,d,target])=>{
+   const done=completionFor(todayKey,k);
+   const checked=done?"checked":"";
+   const disabled=k==="vocab"?"disabled":"";
+   let detail=d;
+   if(k==="vocab"){
+     const h=ensureHistory(todayKey);
+     const pct=Math.min(100,Math.round((h.vocabLearned||0)/Math.max(1,target)*100));
+     detail=`${h.vocabLearned||0} / ${target} 个<div class="progress-line"><div style="width:${pct}%"></div></div>`;
+   }
+   return `<div class="task"><input type="checkbox" ${checked} ${disabled} onchange="toggleTask('${k}')"><div><strong>${t}</strong><br><span class="muted small">${detail}</span></div></div>`;
+ }).join(""):`<div class="muted">今天没有设置学习任务。</div>`;
+
+ const homeTasks=todayTasks(todayKey).slice(0,3);
+ document.getElementById("homeTodayTasks").innerHTML=homeTasks.length?homeTasks.map(([k,t])=>`<div class="task"><span>${completionFor(todayKey,k)?"✓":"○"}</span><span>${t}</span></div>`).join(""):`<div class="muted small">今天还没有计划。</div>`;
+ renderWeek();
+}
+function renderWeek(){
+ const el=document.getElementById("weekView");el.innerHTML="";
+ const now=new Date(),day=(now.getDay()+6)%7,monday=new Date(now);monday.setDate(now.getDate()-day);
+ for(let i=0;i<7;i++){
+  const d=new Date(monday);d.setDate(monday.getDate()+i);const key=dateKeyLocal(d);
+  syncDateCompletion(key);
+  const active=activePlanTasks(key),done=active.filter(k=>completionFor(key,k)).length;
+  const div=document.createElement("div");div.className="day"+(key===todayKey?" today":"")+(active.length&&done===active.length?" done":"");
+  const vocabGoal=getPlan(key).vocab;
+  div.innerHTML=`<strong>${["一","二","三","四","五","六","日"][i]}</strong><div class="muted small">${d.getMonth()+1}/${d.getDate()}</div><div style="margin-top:8px">${done}/${active.length}</div><div class="muted small">词汇 ${vocabGoal}</div>`;
+  el.appendChild(div);
+ }
+}
+function setPlannerToday(){
+ document.getElementById("planDate").value=todayKey;loadPlanForm();
+}
+function setPlannerTomorrow(){
+ const d=new Date();d.setDate(d.getDate()+1);
+ document.getElementById("planDate").value=dateKeyLocal(d);loadPlanForm();
+}
+function loadPlanForm(){
+ const date=document.getElementById("planDate").value||todayKey,p=getPlan(date);
+ document.getElementById("planVocab").value=p.vocab;
+ document.getElementById("planListening").value=p.listening;
+ document.getElementById("planReading").value=p.reading;
+ document.getElementById("planTranslation").value=p.translation;
+ document.getElementById("planWriting").value=p.writing;
+ const label=date===todayKey?"今天":date;
+ document.getElementById("planSummary").textContent=`${label}：背 ${p.vocab} 个单词 · 听力 ${p.listening} 组 · 阅读 ${p.reading} 篇 · 翻译 ${p.translation} 段 · 写作 ${p.writing} 次`;
+}
+function saveDailyPlan(){
+ const date=document.getElementById("planDate").value||todayKey;
+ const read=id=>Math.max(0,Number(document.getElementById(id).value||0));
+ state.plans[date]={
+   vocab:read("planVocab"),
+   listening:read("planListening"),
+   reading:read("planReading"),
+   translation:read("planTranslation"),
+   writing:read("planWriting")
+ };
+ ensureHistory(date);syncDateCompletion(date);
+ save();loadPlanForm();renderToday();
+ alert(`已保存 ${date} 的学习计划。`);
+}
+
+function streak(){
+ let s=0,d=new Date();
+ for(let i=0;i<365;i++){
+   const k=dateKeyLocal(d),active=activePlanTasks(k);
+   const hasActivity=active.some(x=>completionFor(k,x)) || (ensureHistory(k).vocabLearned||0)>0;
+   if(hasActivity)s++;else if(i>0)break;
+   d.setDate(d.getDate()-1);
+ }
+ return s;
+}
+function refresh(){
+ syncDateCompletion(todayKey);
+ const active=activePlanTasks(todayKey),done=active.filter(k=>completionFor(todayKey,k)).length,p=active.length?Math.round(done/active.length*100):0,s=streak();
+ document.getElementById("todayPct").textContent=p+"%";document.getElementById("todayBar").style.width=p+"%";
+ document.getElementById("streakChip").textContent=`🔥 ${s} 天连续学习`;document.getElementById("statStreak").textContent=s;
+ document.getElementById("statWords").textContent=state.knownWords.length;document.getElementById("statPractice").textContent=state.practice;document.getElementById("statMock").textContent=state.mockBest+"%";
+ const score=(k)=>Math.min(100,state.scores[k]||0);
+ document.getElementById("skillVocab").style.width=Math.min(100,state.knownWords.length/5418*100)+"%";
+ document.getElementById("skillListening").style.width=score("listening")+"%";document.getElementById("skillReading").style.width=score("reading")+"%";
+ document.getElementById("skillTranslation").style.width=score("translation")+"%";document.getElementById("skillWriting").style.width=score("writing")+"%";document.getElementById("skillMock").style.width=score("mock")+"%";
+}
+
+function switchVocabTab(name){
+ document.querySelectorAll(".vtab").forEach(b=>b.classList.toggle("active",b.dataset.vtab===name));
+ document.querySelectorAll(".vocab-pane").forEach(p=>p.classList.remove("active"));
+ document.getElementById("vocab-"+name).classList.add("active");
+ if(name==="lexicon") renderLexicon();
+ if(name==="overview") updateVocabStats();
+}
+function updateVocabStats(){
+ const known=new Set(state.knownWords||[]), unknown=new Set(state.unknownWords||[]);
+ const pct=Math.min(100,Math.round(known.size/5418*100));
+ ["knownCount","overviewKnown"].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=known.size.toLocaleString()});
+ ["unknownCount","overviewUnknown"].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=unknown.size.toLocaleString()});
+ const t=document.getElementById("vocabProgressText");if(t)t.textContent=pct+"%";
+ const b=document.getElementById("vocabProgressBar");if(b)b.style.width=pct+"%";
+}
+function sourcePool(source){
+ if(!vocabData.length) return [];
+ if(source==="unknown"){
+   const s=new Set(state.unknownWords||[]);
+   const a=vocabData.filter(w=>s.has(w.word));
+   return a.length?a:vocabData;
+ }
+ if(source==="starred"){
+   const s=new Set(state.starredWords||[]);
+   const a=vocabData.filter(w=>s.has(w.word));
+   return a.length?a:vocabData;
+ }
+ return vocabData;
+}
+function shuffleSample(arr,n){
+ const a=[...arr];
+ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
+ return a.slice(0,Math.min(n,a.length));
+}
+function startStudySession(){
+ if(!vocabData.length) return;
+ const source=document.getElementById("studySource")?.value||"all";
+ const raw=document.getElementById("studyCount")?.value||"goal";
+ const h=ensureHistory(todayKey),goal=Number(getPlan(todayKey).vocab||0);
+ const remaining=Math.max(1,goal-(h.vocabLearned||0));
+ const count=raw==="goal"?remaining:Number(raw);
+ vocabSession=shuffleSample(sourcePool(source),count);vIndex=0;showWord();
+}
+function showWord(){
+ if(!vocabSession.length){
+   document.getElementById("word").textContent="没有可用词汇";
+   document.getElementById("phonetic").textContent="";
+   document.getElementById("meaning").textContent="";
+   document.getElementById("vocabCounter").textContent="0 / 0";
+   return;
+ }
+ const w=vocabSession[vIndex];
+ document.getElementById("word").textContent=w.word;
+ document.getElementById("phonetic").textContent=w.phonetic||"";
+ document.getElementById("meaning").textContent=w.meaning;
+ document.getElementById("meaning").style.display="none";
+ document.getElementById("vocabCounter").textContent=`${vIndex+1} / ${vocabSession.length}`;
+}
+function revealWord(){document.getElementById("meaning").style.display="block"}
+function speakWord(){
+ if(!vocabSession.length)return;
+ const u=new SpeechSynthesisUtterance(vocabSession[vIndex].word);u.lang="en-US";
+ speechSynthesis.cancel();speechSynthesis.speak(u)
+}
+function markWord(word,status){
+ state.knownWords=state.knownWords.filter(x=>x!==word);
+ state.unknownWords=state.unknownWords.filter(x=>x!==word);
+ if(status==="known") state.knownWords.push(word);
+ if(status==="unknown") state.unknownWords.push(word);
+}
+function rateWord(known){
+ if(!vocabSession.length)return;
+ const w=vocabSession[vIndex].word;
+ markWord(w,known?"known":"unknown");
+ const h=ensureHistory(todayKey);
+ h.vocabLearned=(h.vocabLearned||0)+1;
+ syncDateCompletion(todayKey);
+ vIndex++;
+ if(vIndex>=vocabSession.length){
+   const goal=Number(getPlan(todayKey).vocab||0),done=h.vocabLearned||0;
+   save();renderToday();updateVocabStats();
+   if(goal>0 && done>=goal) alert(`今日词汇目标完成：${done}/${goal} 个。`);
+   else alert(`本组 ${vocabSession.length} 个单词已完成，今日进度 ${done}/${goal}。`);
+   startStudySession();
+   return;
+ }
+ save();renderToday();updateVocabStats();showWord();
+}
+function toggleStar(word){
+ const a=state.starredWords||[];
+ state.starredWords=a.includes(word)?a.filter(x=>x!==word):[...a,word];
+ save();renderLexicon();
+}
+function setWordStatus(word,status){
+ markWord(word,status);save();updateVocabStats();renderLexicon();
+}
+function getLexFiltered(){
+ const q=(document.getElementById("lexSearch")?.value||"").trim().toLowerCase();
+ const f=document.getElementById("lexFilter")?.value||"all";
+ const known=new Set(state.knownWords||[]),unknown=new Set(state.unknownWords||[]),starred=new Set(state.starredWords||[]);
+ return vocabData.filter(w=>{
+   if(q && !w.word.toLowerCase().includes(q) && !w.meaning.includes(q)) return false;
+   if(f==="known"&&!known.has(w.word))return false;
+   if(f==="unknown"&&!unknown.has(w.word))return false;
+   if(f==="starred"&&!starred.has(w.word))return false;
+   return true;
+ });
+}
+function renderLexicon(reset=false){
+ if(reset)lexPage=1;
+ if(!vocabData.length)return;
+ const rows=getLexFiltered();
+ const pages=Math.max(1,Math.ceil(rows.length/LEX_PAGE_SIZE));
+ lexPage=Math.max(1,Math.min(lexPage,pages));
+ const part=rows.slice((lexPage-1)*LEX_PAGE_SIZE,lexPage*LEX_PAGE_SIZE);
+ const known=new Set(state.knownWords||[]),unknown=new Set(state.unknownWords||[]),starred=new Set(state.starredWords||[]);
+ document.getElementById("lexResultCount").textContent=rows.length.toLocaleString()+" 条";
+ document.getElementById("lexPageText").textContent=`${lexPage} / ${pages}`;
+ document.getElementById("lexBody").innerHTML=part.map((w,i)=>{
+   const status=known.has(w.word)?"✓ 已掌握":unknown.has(w.word)?"↻ 待复习":"未标记";
+   return `<tr>
+    <td>${(lexPage-1)*LEX_PAGE_SIZE+i+1}</td>
+    <td><div class="lex-word">${escapeHtml(w.word)}</div>
+      <div style="margin-top:5px"><button class="iconbtn" onclick="speakText('${escapeAttr(w.word)}')">🔊</button>
+      <button class="iconbtn" onclick="toggleStar('${escapeAttr(w.word)}')">${starred.has(w.word)?"★":"☆"}</button></div>
+    </td>
+    <td>${escapeHtml(w.phonetic||"—")}</td>
+    <td class="lex-meaning">${escapeHtml(w.meaning||"—")}</td>
+    <td><div>${status}</div><div style="margin-top:5px">
+      <button class="iconbtn" onclick="setWordStatus('${escapeAttr(w.word)}','known')">会</button>
+      <button class="iconbtn" onclick="setWordStatus('${escapeAttr(w.word)}','unknown')">不会</button>
+    </div></td></tr>`;
+ }).join("");
+}
+function lexPrev(){if(lexPage>1){lexPage--;renderLexicon()}}
+function lexNext(){const p=Math.ceil(getLexFiltered().length/LEX_PAGE_SIZE);if(lexPage<p){lexPage++;renderLexicon()}}
+function speakText(text){const u=new SpeechSynthesisUtterance(text);u.lang="en-US";speechSynthesis.cancel();speechSynthesis.speak(u)}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function escapeAttr(s){return String(s).replace(/\\/g,"\\\\").replace(/'/g,"\\'")}
+function startDictation(){
+ if(!vocabData.length)return;
+ const mode=document.getElementById("dictMode").value;
+ const source=document.getElementById("dictSource").value;
+ const count=Number(document.getElementById("dictCount").value);
+ dictationSet=shuffleSample(sourcePool(source),count);
+ document.getElementById("dictScore").textContent="尚未检测";
+ document.getElementById("dictEmpty").style.display="none";
+ document.getElementById("dictBoard").style.display="block";
+ document.getElementById("dictRows").innerHTML=dictationSet.map((w,i)=>{
+   const prompt=mode==="zh-en"?w.meaning:w.word;
+   return `<div class="dict-row" id="drow${i}">
+    <div>${i+1}</div>
+    <div class="dict-prompt">${escapeHtml(prompt)}</div>
+    <div class="dict-answer"><input id="dans${i}" autocomplete="off" spellcheck="false" placeholder="${mode==="zh-en"?"输入英文拼写":"输入中文释义"}"></div>
+    <div class="dict-result" id="dres${i}">—</div>
+   </div>`;
+ }).join("");
+ setTimeout(()=>document.getElementById("dans0")?.focus(),50);
+}
+function normEnglish(s){return String(s||"").trim().toLowerCase().replace(/[’']/g,"'").replace(/\s+/g," ")}
+function chineseTokens(s){return [...new Set((String(s||"").match(/[\u3400-\u9fff]{2,8}/g)||[]))]}
+function checkChineseAnswer(ans,reference){
+ const a=String(ans||"").replace(/[，。；、\s,.!?]/g,"");
+ if(a.length<1)return false;
+ const tokens=chineseTokens(reference).filter(x=>x.length>=2);
+ if(tokens.some(t=>a.includes(t)||t.includes(a)))return true;
+ const refchars=new Set(String(reference).match(/[\u3400-\u9fff]/g)||[]);
+ const achars=[...new Set(a.match(/[\u3400-\u9fff]/g)||[])];
+ if(!achars.length)return false;
+ const overlap=achars.filter(c=>refchars.has(c)).length/achars.length;
+ return overlap>=0.7 && achars.length>=2;
+}
+function submitDictation(){
+ if(!dictationSet.length)return;
+ const mode=document.getElementById("dictMode").value;
+ let correct=0;
+ dictationSet.forEach((w,i)=>{
+   const ans=document.getElementById("dans"+i).value;
+   const ok=mode==="zh-en"?normEnglish(ans)===normEnglish(w.word):checkChineseAnswer(ans,w.meaning);
+   if(ok){correct++;markWord(w.word,"known")}else markWord(w.word,"unknown");
+   const row=document.getElementById("drow"+i);row.classList.remove("okrow","badrow");row.classList.add(ok?"okrow":"badrow");
+   document.getElementById("dres"+i).innerHTML=ok
+     ? `<span class="goodtxt">✓ 正确</span>`
+     : `<span class="badtxt">✗</span><br><span class="muted">${escapeHtml(mode==="zh-en"?w.word:w.meaning)}</span>`;
+ });
+ const pct=Math.round(correct/dictationSet.length*100);
+ state.vocabTests.count=(state.vocabTests.count||0)+1;
+ state.vocabTests.best=Math.max(state.vocabTests.best||0,pct);
+ state.practice++;
+ /* 默写属于检测，不计入当天“背诵单词”数量目标 */
+ document.getElementById("dictScore").textContent=`${correct}/${dictationSet.length} · ${pct}%`;
+ save();updateVocabStats();renderToday();
+}
+function showVocabStats(){
+ alert(`官方考纲词目：5418\n释义增强学习库：${vocabData.length}\n已掌握：${state.knownWords.length}\n待复习：${state.unknownWords.length}\n默写最高分：${state.vocabTests.best||0}%`);
+}
+function resetVocabSession(){startStudySession()}
+
+function renderListening(){
+ document.getElementById("listenTitle").textContent=listening.title;document.getElementById("listenTranscript").textContent=listening.transcript;
+ document.getElementById("listenQuestions").innerHTML=listening.qs.map((x,i)=>`<div class="question"><strong>${i+1}. ${x.q}</strong>${x.ops.map((o,j)=>`<label class="option"><input type="radio" name="l${i}" value="${j}"> ${o}</label>`).join("")}<div id="lf${i}" class="feedback"></div></div>`).join("")
+}
+function playListening(){const u=new SpeechSynthesisUtterance(listening.transcript);u.lang="en-US";u.rate=.92;speechSynthesis.cancel();speechSynthesis.speak(u)}
+function toggleTranscript(){const e=document.getElementById("listenTranscript");e.style.display=e.style.display==="none"?"block":"none"}
+function checkListening(){let s=0;listening.qs.forEach((x,i)=>{const z=document.querySelector(`input[name=l${i}]:checked`),v=z?+z.value:-1,fb=document.getElementById("lf"+i);if(v===x.a){s++;fb.innerHTML='<span class="goodtxt">✓ 正确</span>'}else{fb.innerHTML=`<span class="badtxt">✗ ${x.ops[x.a]}</span>`;addMistake("听力",x.q,x.ops[x.a])}});const p=Math.round(s/listening.qs.length*100);document.getElementById("listenScore").textContent=`${s}/${listening.qs.length} · ${p}%`;state.scores.listening=Math.max(state.scores.listening,p);state.history[todayKey].listening=true;state.practice++;save();renderToday()}
+function renderReading(){
+ document.getElementById("readingTitle").textContent=reading.title;document.getElementById("readingPassage").innerHTML=reading.passage.split("\n\n").map(p=>`<p>${p}</p>`).join("");
+ document.getElementById("readingQuestions").innerHTML=reading.qs.map((x,i)=>`<div class="question"><strong>${i+1}. ${x.q}</strong>${x.ops.map((o,j)=>`<label class="option"><input type="radio" name="r${i}" value="${j}"> ${o}</label>`).join("")}<div id="rf${i}" class="feedback"></div></div>`).join("")
+}
+function checkReading(){let s=0;reading.qs.forEach((x,i)=>{const z=document.querySelector(`input[name=r${i}]:checked`),v=z?+z.value:-1,fb=document.getElementById("rf"+i);if(v===x.a){s++;fb.innerHTML='<span class="goodtxt">✓ 正确</span>'}else{fb.innerHTML=`<span class="badtxt">✗ ${x.ops[x.a]}</span>`;addMistake("阅读",x.q,x.ops[x.a])}});const p=Math.round(s/reading.qs.length*100);document.getElementById("readingScore").textContent=`${s}/${reading.qs.length} · ${p}%`;state.scores.reading=Math.max(state.scores.reading,p);state.history[todayKey].reading=true;state.practice++;save();renderToday()}
+function saveTranslation(){state.history[todayKey].translation=true;state.scores.translation=Math.min(100,(state.scores.translation||0)+10);state.practice++;save();renderToday();alert("已保存本次翻译练习。")}
+function toggleTranslationRef(){const e=document.getElementById("translationRef");e.style.display=e.style.display==="none"?"block":"none"}
+function countWords(){const t=document.getElementById("writingAnswer").value.trim();const n=t?t.split(/\s+/).length:0;document.getElementById("wordCount").textContent=n+" words"}
+function saveWriting(){const t=document.getElementById("writingAnswer").value.trim();if(t.split(/\s+/).filter(Boolean).length<80){alert("建议至少先写到 80 词再保存。");return}state.history[todayKey].writing=true;state.scores.writing=Math.min(100,(state.scores.writing||0)+10);state.practice++;save();renderToday();alert("作文已保存在当前浏览器。")}
+function toggleWritingGuide(){const e=document.getElementById("writingGuide");e.style.display=e.style.display==="none"?"block":"none"}
+function renderMock(){
+ document.getElementById("mockQuestions").innerHTML=mockQs.map((x,i)=>`<div class="examblock"><strong>${i+1}. ${x.q}</strong>${x.ops.map((o,j)=>`<label class="option"><input type="radio" name="m${i}" value="${j}"> ${o}</label>`).join("")}</div>`).join("")
+}
+function startMock(){if(timerId)return;timerId=setInterval(()=>{timeLeft--;const m=Math.floor(timeLeft/60),s=timeLeft%60;document.getElementById("mockTimer").textContent=`${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;if(timeLeft<=0){clearInterval(timerId);timerId=null;submitMock()}},1000)}
+function submitMock(){if(timerId){clearInterval(timerId);timerId=null}let s=0;mockQs.forEach((x,i)=>{const z=document.querySelector(`input[name=m${i}]:checked`),v=z?+z.value:-1;if(v===x.a)s++;else addMistake("模考",x.q,x.ops[x.a])});const p=Math.round(s/mockQs.length*100);state.mockBest=Math.max(state.mockBest,p);state.scores.mock=Math.max(state.scores.mock,p);state.practice++;document.getElementById("mockScore").textContent=`得分：${s}/${mockQs.length} · ${p}%`;save()}
+function addMistake(area,q,a){const key=area+"|"+q;if(!state.mistakes.some(x=>x.key===key))state.mistakes.push({key,area,q,a,date:todayKey})}
+function renderMistakes(){const el=document.getElementById("mistakeList");if(!state.mistakes.length){el.innerHTML='<p class="muted">目前没有错题。</p>';return}el.innerHTML=state.mistakes.slice().reverse().map(x=>`<div class="mistake"><span class="badge">${x.area}</span> <span class="muted small">${x.date}</span><div style="margin-top:7px"><strong>${x.q}</strong></div><div>正确答案：${x.a}</div></div>`).join("")}
+
+document.getElementById("dateLabel").textContent=new Date().toLocaleDateString("zh-CN",{month:"long",day:"numeric",weekday:"long"});
+document.getElementById("translationPrompt").textContent=translation.prompt;document.getElementById("translationRef").textContent=translation.ref;
+document.getElementById("writingPrompt").textContent=writing.prompt;document.getElementById("writingGuide").textContent=writing.guide;
+document.getElementById("planDate").value=todayKey;
+loadPlanForm();
+renderToday();renderListening();renderReading();renderMock();refresh();markActive();initVocab();
+</script>
+</body>
+</html>
