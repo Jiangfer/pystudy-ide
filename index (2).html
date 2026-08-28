@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PyStudy IDE V3</title>
+<meta name="description" content="真正从零基础开始的 Python 学习 IDE">
+<style>
+:root{
+  --bg:#0b1020;--panel:#11182b;--panel2:#16213a;--line:#263550;--text:#eaf0ff;
+  --muted:#9caccc;--accent:#7da2ff;--green:#49d391;--red:#ff7282;--yellow:#ffd36f;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+.app{height:100%;display:grid;grid-template-rows:58px 1fr}
+.top{display:flex;align-items:center;padding:0 16px;border-bottom:1px solid var(--line);background:#0d1426;gap:12px}
+.brand{font-size:19px;font-weight:800}.brand span{color:var(--accent)}
+.top .spacer{flex:1}.chip{border:1px solid var(--line);border-radius:999px;padding:6px 10px;color:var(--muted);font-size:12px}
+.btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:9px;padding:8px 11px}
+.btn:hover{filter:brightness(1.08)}.btn.primary{background:var(--accent);color:#081224;border-color:transparent;font-weight:700}
+.btn.good{background:var(--green);color:#062016;border-color:transparent;font-weight:700}
+.layout{display:grid;grid-template-columns:260px 1fr;min-height:0}
+.sidebar{border-right:1px solid var(--line);background:#0e1628;padding:12px;display:flex;flex-direction:column;min-height:0}
+.nav{padding:10px 12px;border-radius:9px;border:1px solid transparent;color:var(--muted);background:transparent;text-align:left;margin-bottom:5px}
+.nav:hover,.nav.active{background:var(--panel2);border-color:var(--line);color:var(--text)}
+.sidebox{margin-top:auto;border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:12px}
+.bar{height:7px;background:#202e4a;border-radius:999px;overflow:hidden}.bar>div{height:100%;width:0;background:var(--accent)}
+main{overflow:auto;padding:16px;min-width:0}.view{display:none}.view.active{display:block}
+h1,h2,h3{margin-top:0}.muted{color:var(--muted)}.small{font-size:13px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+.stat{font-size:28px;font-weight:800;margin-top:8px}.leveltag{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:4px 8px;color:var(--muted);font-size:12px}
+.homegrid{display:grid;grid-template-columns:1.2fr .8fr;gap:12px;margin-top:12px}
+.task{padding:10px 0;border-bottom:1px dashed var(--line);display:flex;gap:10px}.task:last-child{border:0}
+.learnlayout,.practicelayout{height:calc(100vh - 90px);display:grid;grid-template-columns:320px 1fr;gap:12px}
+.listpanel,.mainpanel{border:1px solid var(--line);border-radius:14px;background:var(--panel);min-height:0;overflow:hidden}
+.listpanel{overflow:auto;padding:8px}.group{font-size:12px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;padding:10px 8px 6px}
+.item{padding:10px;border-radius:9px;color:var(--muted);border:1px solid transparent;margin-bottom:5px;cursor:pointer}
+.item:hover,.item.active{background:var(--panel2);color:var(--text);border-color:var(--line)}.item.done:after{content:" ✓";color:var(--green)}
+.mainpanel{display:flex;flex-direction:column}.panelhead{display:flex;gap:8px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}.grow{flex:1}
+.lesson{padding:20px;overflow:auto;line-height:1.75}.lesson pre,.console pre{background:#08101e;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto}
+.lesson code,textarea,pre{font-family:"SFMono-Regular",Consolas,monospace}.explain{border-left:3px solid var(--accent);background:#101a30;padding:12px 14px;border-radius:8px;margin:12px 0}
+.warning{border-left-color:var(--yellow)}.goal{border-left-color:var(--green)}
+.ide{height:calc(100vh - 90px);display:grid;grid-template-rows:44px 1fr 220px;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--panel)}
+.idebar{display:flex;gap:8px;align-items:center;padding:6px 8px;border-bottom:1px solid var(--line);background:#10192c}
+.editorgrid{display:grid;grid-template-columns:1fr 1fr;min-height:0}.pane{display:flex;flex-direction:column;min-width:0;min-height:0}.pane:first-child{border-right:1px solid var(--line)}
+.panehead{padding:8px 10px;background:#0e1628;border-bottom:1px solid var(--line);font-size:12px;color:var(--muted)}
+textarea.editor{flex:1;resize:none;border:0;outline:0;background:#08101e;color:var(--text);padding:14px;font-size:14px;line-height:1.6;tab-size:4}
+.prompt{padding:14px;overflow:auto;line-height:1.65}.console{border-top:1px solid var(--line);display:flex;flex-direction:column;min-height:0}.console pre{border:0;border-radius:0;margin:0;flex:1}
+.quizcard{margin-bottom:12px}.option{display:block;border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:6px 0}
+.goodtxt{color:var(--green)}.badtxt{color:var(--red)}.mistake{border-left:3px solid var(--red);padding:12px 14px;background:var(--panel);margin:10px 0;border-radius:8px}
+@media(max-width:900px){
+ .layout{grid-template-columns:72px 1fr}.nav span,.sidebox{display:none}.nav{text-align:center;padding:10px 4px}
+ .grid4{grid-template-columns:repeat(2,1fr)}.homegrid,.learnlayout,.practicelayout,.editorgrid{grid-template-columns:1fr}
+ .learnlayout,.practicelayout,.ide{height:auto;min-height:calc(100vh - 90px)}.listpanel{max-height:260px}.pane:first-child{border-right:0;border-bottom:1px solid var(--line)}textarea.editor{min-height:360px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="top">
+  <div class="brand">PyStudy <span>IDE V3</span></div>
+  <div class="chip">真正零基础版</div>
+  <div class="spacer"></div>
+  <div class="chip" id="runtimeStatus">Python 内核：未加载</div>
+  <button class="btn primary" onclick="showView('ide')">打开 Code Lab</button>
+</header>
+<div class="layout">
+<aside class="sidebar">
+  <button class="nav active" data-view="home" onclick="showView('home')">🏠 <span>学习主页</span></button>
+  <button class="nav" data-view="learn" onclick="showView('learn')">📘 <span>课程学习</span></button>
+  <button class="nav" data-view="practice" onclick="showView('practice')">🧩 <span>编程练习</span></button>
+  <button class="nav" data-view="quiz" onclick="showView('quiz')">📝 <span>知识测验</span></button>
+  <button class="nav" data-view="ide" onclick="showView('ide')">💻 <span>Code Lab</span></button>
+  <button class="nav" data-view="mistakes" onclick="showView('mistakes')">📕 <span>错题本</span></button>
+  <div class="sidebox">
+    <div style="display:flex;justify-content:space-between;margin-bottom:7px"><span>总进度</span><span id="progressText">0%</span></div>
+    <div class="bar"><div id="progressBar"></div></div>
+  </div>
+</aside>
+
+<main>
+<section class="view active" id="view-home">
+  <h1>Python 学习工作台</h1>
+  <p class="muted">从第一行代码开始，不假设你已经知道任何 Python 语法。</p>
+  <div class="grid4">
+    <div class="card"><div class="muted">课程完成</div><div class="stat" id="statL">0/0</div></div>
+    <div class="card"><div class="muted">练习完成</div><div class="stat" id="statE">0/0</div></div>
+    <div class="card"><div class="muted">测验最高分</div><div class="stat" id="statQ">0%</div></div>
+    <div class="card"><div class="muted">代码运行</div><div class="stat" id="statR">0</div></div>
+  </div>
+  <div class="homegrid">
+    <div class="card">
+      <h2>今天学什么</h2>
+      <div id="today"></div>
+    </div>
+    <div class="card">
+      <h2>学习路线</h2>
+      <p><span class="leveltag">Level 0</span> 完全零基础</p>
+      <p><span class="leveltag">Level 1</span> Python 基础</p>
+      <p><span class="leveltag">Level 2</span> 编程思维</p>
+      <p><span class="leveltag">Level 3</span> NumPy 与数学编程</p>
+      <p><span class="leveltag">Level 4</span> 优化算法</p>
+      <button class="btn good" onclick="continueLearning()">继续学习</button>
+    </div>
+  </div>
+</section>
+
+<section class="view" id="view-learn">
+<div class="learnlayout">
+  <div class="listpanel" id="lessonList"></div>
+  <div class="mainpanel">
+    <div class="panelhead">
+      <div><span class="leveltag" id="lessonLevel"></span></div>
+      <strong id="lessonTitle" class="grow"></strong>
+      <button class="btn good" onclick="markLessonDone()">标记完成</button>
+    </div>
+    <div class="lesson" id="lessonBody"></div>
+  </div>
+</div>
+</section>
+
+<section class="view" id="view-practice">
+<div class="practicelayout">
+  <div class="listpanel" id="exerciseList"></div>
+  <div class="ide" style="height:100%">
+    <div class="idebar">
+      <span class="leveltag" id="exLevel"></span><strong id="exTitle"></strong><div class="spacer"></div>
+      <button class="btn" onclick="showAnswer()">参考答案</button>
+      <button class="btn good" onclick="checkExercise()">自动检查</button>
+    </div>
+    <div class="editorgrid">
+      <div class="pane"><div class="panehead">你的代码</div><textarea class="editor" id="exerciseEditor"></textarea></div>
+      <div class="pane"><div class="panehead">题目与提示</div><div class="prompt" id="exercisePrompt"></div></div>
+    </div>
+    <div class="console"><div class="panehead">运行结果</div><pre id="exerciseConsole">等待运行...</pre></div>
+  </div>
+</div>
+</section>
+
+<section class="view" id="view-quiz">
+  <h1>基础知识测验</h1>
+  <div id="quizList"></div>
+  <button class="btn good" onclick="submitQuiz()">提交测验</button>
+  <strong id="quizScore" style="margin-left:10px"></strong>
+</section>
+
+<section class="view" id="view-ide">
+<div class="ide">
+  <div class="idebar"><strong>Code Lab</strong><span class="leveltag">Python in Browser</span><div class="spacer"></div>
+    <button class="btn" onclick="loadExample()">载入示例</button>
+    <button class="btn" onclick="document.getElementById('codeEditor').value=''">清空</button>
+    <button class="btn primary" onclick="runIDE()">运行 ▶</button>
+  </div>
+  <div class="editorgrid">
+    <div class="pane"><div class="panehead">main.py</div><textarea class="editor" id="codeEditor"></textarea></div>
+    <div class="pane"><div class="panehead">新手提示</div><div class="prompt">
+      <h3>怎么用这里学习？</h3>
+      <p>不要只复制代码。先运行，再改一个地方，再运行一次。</p>
+      <div class="explain"><strong>例如：</strong><br>把 <code>print("Hello")</code> 改成 <code>print("Hello, Python!")</code>，观察输出。</div>
+      <h3>遇到报错怎么办？</h3>
+      <p>先看最后一行。通常那里会告诉你错误类型，例如 <code>SyntaxError</code>、<code>NameError</code>。</p>
+    </div></div>
+  </div>
+  <div class="console"><div class="panehead">Console</div><pre id="codeConsole">第一次运行时会加载 Python 内核。</pre></div>
+</div>
+</section>
+
+<section class="view" id="view-mistakes">
+  <h1>错题本</h1><p class="muted">做错的测验题会自动保存在这里。</p><div id="mistakeList"></div>
+</section>
+</main>
+</div>
+</div>
+
+<script>
+const lessons = [
+{id:"l00",level:"Level 0",title:"00 你的第一行 Python",body:`
+<h2>你的第一行 Python</h2>
+<p>这一节不要求你知道任何编程知识。</p>
+<pre><code>print("Hello, Python!")</code></pre>
+<div class="explain"><strong>这一行到底在做什么？</strong><br>
+<code>print</code> 是 Python 提供的一个函数，用来把内容显示到屏幕上。<br>
+<code>()</code> 里面放的是你希望它处理的内容。<br>
+<code>"Hello, Python!"</code> 是一段文字，在 Python 里叫字符串。</div>
+<h3>你只需要先记住</h3>
+<p>写代码 → 运行 → 观察结果。现在不用急着理解“函数”这个词。</p>
+<div class="explain goal"><strong>本节任务：</strong>去 Code Lab，把 Hello, Python! 改成你自己的句子并运行。</div>`},
+
+{id:"l01",level:"Level 0",title:"01 print() 与字符串",body:`
+<h2>print() 与字符串</h2>
+<p>你可以输出多行：</p>
+<pre><code>print("第一行")
+print("第二行")</code></pre>
+<p>单引号和双引号都可以：</p>
+<pre><code>print('hello')
+print("hello")</code></pre>
+<div class="explain warning"><strong>常见错误：</strong>引号必须成对出现。<br><code>print("hello)</code> 会导致 SyntaxError。</div>
+<h3>字符串拼接</h3>
+<pre><code>print("Hello, " + "Python!")</code></pre>
+<div class="explain goal"><strong>本节任务：</strong>输出你的名字、专业和一句你喜欢的话。</div>`},
+
+{id:"l02",level:"Level 0",title:"02 变量是什么",body:`
+<h2>变量</h2>
+<pre><code>name = "Ada"
+age = 20
+print(name)
+print(age)</code></pre>
+<div class="explain"><strong>重点：</strong><code>=</code> 在这里不是数学里的“等于”，而是“把右边的值交给左边这个名字”。</div>
+<p>所以：</p>
+<pre><code>x = 10
+x = 20
+print(x)</code></pre>
+<p>最后输出 20，因为变量 x 后来被重新赋值。</p>
+<div class="explain goal"><strong>任务：</strong>创建 name、age、major 三个变量并输出。</div>`},
+
+{id:"l03",level:"Level 0",title:"03 int / float / str / bool",body:`
+<h2>四种最常见数据类型</h2>
+<pre><code>a = 10          # int 整数
+b = 3.14        # float 小数
+c = "Python"    # str 字符串
+d = True        # bool 布尔值</code></pre>
+<p>用 <code>type()</code> 查看类型：</p>
+<pre><code>print(type(a))
+print(type(c))</code></pre>
+<div class="explain">不同类型决定了一个值可以怎样运算。例如数字可以加减乘除，字符串可以拼接。</div>`},
+
+{id:"l04",level:"Level 0",title:"04 加减乘除与运算顺序",body:`
+<h2>基本运算</h2>
+<pre><code>print(7 + 3)
+print(7 - 3)
+print(7 * 3)
+print(7 / 3)
+print(7 // 3)
+print(7 % 3)
+print(2 ** 5)</code></pre>
+<p><code>//</code> 是整除，<code>%</code> 是余数，<code>**</code> 是幂。</p>
+<div class="explain goal"><strong>任务：</strong>计算 1 到 100 的和公式 <code>100*101/2</code>。</div>`},
+
+{id:"l05",level:"Level 0",title:"05 input()：让用户输入",body:`
+<h2>input()</h2>
+<pre><code>name = input("请输入你的名字：")
+print("你好，" + name)</code></pre>
+<div class="explain warning"><strong>重要：</strong><code>input()</code> 得到的永远是字符串。</div>
+<p>如果需要数字：</p>
+<pre><code>age = int(input("年龄："))
+print(age + 1)</code></pre>
+<p><code>int()</code> 是类型转换。</p>`},
+
+{id:"l06",level:"Level 0",title:"06 注释、空格与缩进",body:`
+<h2>注释</h2>
+<pre><code># 这一行不会被执行
+x = 10  # 也可以写在代码后面</code></pre>
+<h2>缩进</h2>
+<p>Python 用缩进表示代码属于哪一层。</p>
+<pre><code>if True:
+    print("这一行前面有 4 个空格")</code></pre>
+<div class="explain warning">缩进不是为了“好看”，而是 Python 语法的一部分。</div>`},
+
+{id:"l07",level:"Level 0",title:"07 报错并不可怕：读 traceback",body:`
+<h2>第一次认识报错</h2>
+<p>例如：</p>
+<pre><code>print(hello)</code></pre>
+<p>如果你没有定义变量 hello，会出现：</p>
+<pre><code>NameError: name 'hello' is not defined</code></pre>
+<h3>常见错误</h3>
+<p><code>SyntaxError</code>：语法写错。<br>
+<code>NameError</code>：用了不存在的变量名。<br>
+<code>TypeError</code>：类型之间进行了不允许的操作。<br>
+<code>IndexError</code>：列表下标越界。</p>
+<div class="explain">调试不是失败，而是编程最正常的一部分。</div>`},
+
+{id:"l08",level:"Level 0",title:"08 == 和 = 完全不同",body:`
+<h2>赋值 vs 比较</h2>
+<pre><code>x = 10
+print(x == 10)</code></pre>
+<p><code>=</code> 是赋值；<code>==</code> 是比较两个值是否相同。</p>
+<pre><code>print(10 > 3)
+print(10 != 3)
+print(5 <= 5)</code></pre>
+<p>比较表达式的结果是 True 或 False。</p>`},
+
+{id:"l09",level:"Level 0",title:"09 if：让程序会判断",body:`
+<h2>if 条件判断</h2>
+<pre><code>score = 88
+
+if score >= 60:
+    print("及格")
+else:
+    print("不及格")</code></pre>
+<p>注意冒号和缩进。</p>
+<pre><code>if score >= 90:
+    print("A")
+elif score >= 80:
+    print("B")
+else:
+    print("C")</code></pre>`},
+
+{id:"l10",level:"Level 0",title:"10 and / or / not",body:`
+<h2>组合条件</h2>
+<pre><code>age = 20
+has_ticket = True
+
+if age >= 18 and has_ticket:
+    print("允许进入")</code></pre>
+<p><code>and</code> 两个条件都真；<code>or</code> 至少一个真；<code>not</code> 取反。</p>`},
+
+{id:"l11",level:"Level 1",title:"11 for 循环",body:`
+<h2>重复执行</h2>
+<pre><code>for i in range(5):
+    print(i)</code></pre>
+<p>输出 0,1,2,3,4。</p>
+<pre><code>total = 0
+for i in range(1, 101):
+    total += i
+print(total)</code></pre>
+<div class="explain">“累加变量”是非常重要的编程模式。</div>`},
+
+{id:"l12",level:"Level 1",title:"12 while 循环",body:`
+<h2>while</h2>
+<pre><code>x = 1
+while x < 100:
+    x = x * 2
+print(x)</code></pre>
+<div class="explain warning">如果条件永远为 True，程序会陷入死循环。</div>`},
+
+{id:"l13",level:"Level 1",title:"13 list 列表",body:`
+<h2>列表</h2>
+<pre><code>scores = [85, 90, 76, 100]
+print(scores[0])
+print(scores[-1])</code></pre>
+<p>Python 下标从 0 开始。</p>
+<pre><code>scores.append(95)
+print(len(scores))
+print(sum(scores))</code></pre>`},
+
+{id:"l14",level:"Level 1",title:"14 索引与切片",body:`
+<h2>切片</h2>
+<pre><code>nums = [0,1,2,3,4,5]
+print(nums[1:4])
+print(nums[:3])
+print(nums[::2])</code></pre>
+<p>切片遵循“左闭右开”。</p>`},
+
+{id:"l15",level:"Level 1",title:"15 函数",body:`
+<h2>函数</h2>
+<pre><code>def add(a, b):
+    return a + b
+
+result = add(3, 5)
+print(result)</code></pre>
+<p>函数让你把一段逻辑包装成可重复使用的工具。</p>
+<div class="explain goal"><strong>任务：</strong>定义 mean(numbers) 返回平均数。</div>`},
+
+{id:"l16",level:"Level 1",title:"16 参数、返回值、作用域",body:`
+<h2>参数与返回值</h2>
+<pre><code>def power(x, n=2):
+    return x ** n
+
+print(power(3))
+print(power(3, 3))</code></pre>
+<p>函数内部创建的变量通常只在函数内部有效，这就是作用域。</p>`},
+
+{id:"l17",level:"Level 1",title:"17 dict 与 set",body:`
+<h2>字典</h2>
+<pre><code>student = {"name":"Ada", "score":95}
+print(student["name"])</code></pre>
+<h2>集合</h2>
+<pre><code>s = {1,2,2,3}
+print(s)</code></pre>
+<p>集合自动去重。</p>`},
+
+{id:"l18",level:"Level 2",title:"18 如何把题目翻译成代码",body:`
+<h2>编程题四步法</h2>
+<ol>
+<li>输入是什么？</li>
+<li>输出是什么？</li>
+<li>中间需要哪些变量？</li>
+<li>需要条件、循环还是函数？</li>
+</ol>
+<div class="explain"><strong>例：</strong>求 1 到 n 的平方和。<br>
+输入：n；输出：一个数字；过程：循环累加；结构：函数。</div>
+<pre><code>def square_sum(n):
+    total = 0
+    for i in range(1, n + 1):
+        total += i ** 2
+    return total</code></pre>`},
+
+{id:"l19",level:"Level 2",title:"19 Debug：自己定位错误",body:`
+<h2>调试基本流程</h2>
+<ol>
+<li>先复现错误。</li>
+<li>读 traceback 最后一行。</li>
+<li>检查报错行附近变量和值。</li>
+<li>用 print() 输出中间结果。</li>
+<li>一次只改一个地方。</li>
+</ol>
+<p>这是以后做算法和科研代码最重要的能力之一。</p>`},
+
+{id:"l20",level:"Level 2",title:"20 文件与模块",body:`
+<h2>文件</h2>
+<pre><code>with open("data.txt","r",encoding="utf-8") as f:
+    text = f.read()</code></pre>
+<h2>模块</h2>
+<pre><code>import math
+print(math.sqrt(2))</code></pre>`},
+
+{id:"l21",level:"Level 3",title:"21 NumPy：从列表到数组",body:`
+<h2>NumPy</h2>
+<pre><code>import numpy as np
+x = np.array([1.,2.,3.])
+y = np.array([4.,5.,6.])
+print(x + y)
+print(x @ y)</code></pre>
+<p>NumPy 是后面数值线性代数、优化和机器学习的基础。</p>`},
+
+{id:"l22",level:"Level 3",title:"22 向量、矩阵与 shape",body:`
+<h2>数组形状</h2>
+<pre><code>import numpy as np
+A = np.array([[1,2],[3,4]])
+x = np.array([1,1])
+print(A.shape)
+print(A @ x)</code></pre>
+<p>以后看到公式时，要逐渐学会把维度对应到 shape。</p>`},
+
+{id:"l23",level:"Level 4",title:"23 第一个优化算法：梯度下降",body:`
+<h2>梯度下降</h2>
+<p>数学更新：</p>
+<pre><code>x_{t+1} = x_t - eta * grad f(x_t)</code></pre>
+<pre><code>def grad(x):
+    return 2 * (x - 3)
+
+x = 10.0
+eta = 0.1
+for _ in range(50):
+    x = x - eta * grad(x)
+print(x)</code></pre>
+<p>到这里，你已经开始从“学 Python”进入“用 Python 写数学算法”。</p>`},
+
+{id:"l24",level:"Level 4",title:"24 SGD / OGD 预备",body:`
+<h2>从基础循环到优化算法</h2>
+<pre><code>def gradient_descent(grad, x0, lr, steps):
+    x = x0
+    for _ in range(steps):
+        x = x - lr * grad(x)
+    return x</code></pre>
+<p>后续可以继续进入 SGD、Online Gradient Descent、Mirror Descent。</p>`}
+];
+
+const exercises = [
+{id:"e0",level:"Level 0",title:"输出第一句话",prompt:"输出：Hello, Python!",starter:`# 在下面写代码\n`,answer:`print("Hello, Python!")`,expected:"Hello, Python!"},
+{id:"e1",level:"Level 0",title:"三个变量",prompt:"创建 name='Ada'、age=20、major='Math'，然后依次输出三个变量。",starter:`# 创建三个变量\n\n`,answer:`name="Ada"\nage=20\nmajor="Math"\nprint(name)\nprint(age)\nprint(major)`,expected:"Ada\n20\nMath"},
+{id:"e2",level:"Level 0",title:"算术运算",prompt:"计算 17 除以 5 的整除结果和余数，分别输出。",starter:`# 写代码\n`,answer:`print(17 // 5)\nprint(17 % 5)`,expected:"3\n2"},
+{id:"e3",level:"Level 0",title:"判断正负",prompt:"令 x=-3。如果 x>0 输出 positive，否则输出 non-positive。",starter:`x = -3\n\n# 写判断\n`,answer:`x=-3\nif x>0:\n    print("positive")\nelse:\n    print("non-positive")`,expected:"non-positive"},
+{id:"e4",level:"Level 1",title:"1 到 100 求和",prompt:"使用 for 循环计算 1+2+...+100。",starter:`total = 0\n\n# 写循环\n\nprint(total)`,answer:`total=0\nfor i in range(1,101):\n    total += i\nprint(total)`,expected:"5050"},
+{id:"e5",level:"Level 1",title:"平均数函数",prompt:"定义 mean(numbers)，使 mean([1,2,3,4]) 输出 2.5。",starter:`def mean(numbers):\n    pass\n\nprint(mean([1,2,3,4]))`,answer:`def mean(numbers):\n    return sum(numbers)/len(numbers)\n\nprint(mean([1,2,3,4]))`,expected:"2.5"},
+{id:"e6",level:"Level 2",title:"素数判断",prompt:"定义 is_prime(n)，测试 97，应输出 True。",starter:`def is_prime(n):\n    pass\n\nprint(is_prime(97))`,answer:`def is_prime(n):\n    if n < 2:\n        return False\n    i=2\n    while i*i <= n:\n        if n%i==0:\n            return False\n        i += 1\n    return True\n\nprint(is_prime(97))`,expected:"True"},
+{id:"e7",level:"Level 3",title:"向量内积",prompt:"不用 NumPy，实现 dot([1,2,3],[4,5,6])，输出 32。",starter:`def dot(x,y):\n    pass\n\nprint(dot([1,2,3],[4,5,6]))`,answer:`def dot(x,y):\n    total=0\n    for a,b in zip(x,y):\n        total += a*b\n    return total\n\nprint(dot([1,2,3],[4,5,6]))`,expected:"32"},
+{id:"e8",level:"Level 4",title:"梯度下降",prompt:"最小化 f(x)=(x-5)^2。x0=-10，lr=0.1，迭代 50 次，输出 round(x,4)。",starter:`def grad(x):\n    return 2*(x-5)\n\nx=-10.0\nlr=0.1\n\n# 写梯度下降\n\nprint(round(x,4))`,answer:`def grad(x):\n    return 2*(x-5)\n\nx=-10.0\nlr=0.1\nfor _ in range(50):\n    x = x - lr*grad(x)\nprint(round(x,4))`,expected:"4.9998"}
+];
+
+const quiz = [
+{q:"print() 最主要的作用是？",ops:["创建变量","显示内容","比较大小","结束程序"],a:1,why:"print() 用来把内容输出到屏幕。"},
+{q:"x = 10 中的 = 表示？",ops:["数学等号","比较","赋值","不等于"],a:2,why:"这里是把右边的值交给变量 x。"},
+{q:"哪个是字符串？",ops:["10","3.14","True","\"Python\""],a:3,why:"带引号的文字是字符串。"},
+{q:"input() 默认返回什么类型？",ops:["int","float","str","bool"],a:2,why:"input() 得到的是字符串，需要时再用 int() 等转换。"},
+{q:"== 的作用是？",ops:["赋值","比较是否相等","整除","取余"],a:1,why:"== 用于比较两个值是否相等。"},
+{q:"Python 的列表第一个元素下标是？",ops:["0","1","-1","2"],a:0,why:"Python 从 0 开始计数。"},
+{q:"return 的作用是？",ops:["打印","返回函数结果","创建循环","导入模块"],a:1,why:"return 把函数计算结果返回给调用者。"},
+{q:"梯度下降通常沿什么方向更新？",ops:["梯度方向","负梯度方向","随机方向","固定方向"],a:1,why:"负梯度是局部下降方向。"}
+];
+
+const KEY="pystudy_ide_v3";
+let state=JSON.parse(localStorage.getItem(KEY)||"null")||{lessons:[],exercises:[],quizBest:0,runs:0,mistakes:[]};
+let currentLesson=0,currentExercise=0,pyodide=null,loading=false;
+
+function save(){localStorage.setItem(KEY,JSON.stringify(state));refresh()}
+function showView(name){
+ document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+ document.getElementById("view-"+name).classList.add("active");
+ document.querySelectorAll(".nav").forEach(n=>n.classList.toggle("active",n.dataset.view===name));
+ if(name==="mistakes")renderMistakes();
+}
+function renderLessons(){
+ const el=document.getElementById("lessonList");el.innerHTML="";
+ let last="";
+ lessons.forEach((l,i)=>{
+  if(l.level!==last){last=l.level;const g=document.createElement("div");g.className="group";g.textContent=last;el.appendChild(g)}
+  const d=document.createElement("div");d.className="item"+(i===currentLesson?" active":"")+(state.lessons.includes(l.id)?" done":"");d.textContent=l.title;
+  d.onclick=()=>{currentLesson=i;renderLessons();showLesson()};el.appendChild(d)
+ });showLesson();
+}
+function showLesson(){const l=lessons[currentLesson];document.getElementById("lessonLevel").textContent=l.level;document.getElementById("lessonTitle").textContent=l.title;document.getElementById("lessonBody").innerHTML=l.body}
+function markLessonDone(){const id=lessons[currentLesson].id;if(!state.lessons.includes(id))state.lessons.push(id);save();renderLessons()}
+function renderExercises(){
+ const el=document.getElementById("exerciseList");el.innerHTML="";
+ let last="";
+ exercises.forEach((e,i)=>{
+  if(e.level!==last){last=e.level;const g=document.createElement("div");g.className="group";g.textContent=last;el.appendChild(g)}
+  const d=document.createElement("div");d.className="item"+(i===currentExercise?" active":"")+(state.exercises.includes(e.id)?" done":"");d.textContent=e.title;
+  d.onclick=()=>{currentExercise=i;renderExercises();showExercise()};el.appendChild(d)
+ });showExercise();
+}
+function showExercise(){
+ const e=exercises[currentExercise];document.getElementById("exLevel").textContent=e.level;document.getElementById("exTitle").textContent=e.title;
+ document.getElementById("exercisePrompt").innerHTML=`<p>${e.prompt}</p><div class="explain">先自己写。卡住时再看参考答案。</div>`;
+ document.getElementById("exerciseEditor").value=e.starter;document.getElementById("exerciseConsole").textContent="等待运行..."
+}
+function showAnswer(){document.getElementById("exerciseEditor").value=exercises[currentExercise].answer}
+async function loadPython(){
+ if(pyodide)return pyodide;if(loading){while(!pyodide)await new Promise(r=>setTimeout(r,100));return pyodide}
+ loading=true;document.getElementById("runtimeStatus").textContent="Python 内核：加载中...";
+ if(!window.loadPyodide){await new Promise((res,rej)=>{const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/pyodide/v0.29.3/full/pyodide.js";s.onload=res;s.onerror=rej;document.head.appendChild(s)})}
+ pyodide=await loadPyodide({indexURL:"https://cdn.jsdelivr.net/pyodide/v0.29.3/full/"});loading=false;document.getElementById("runtimeStatus").textContent="Python 内核：已就绪";return pyodide
+}
+async function runPython(code){
+ const py=await loadPython();py.runPython(`import sys,io\n_buf=io.StringIO()\n_oldout,_olderr=sys.stdout,sys.stderr\nsys.stdout=_buf\nsys.stderr=_buf`);
+ try{await py.runPythonAsync(code);return py.runPython("_buf.getvalue()")}
+ catch(err){return py.runPython("_buf.getvalue()")+"\\n"+err}
+ finally{py.runPython("sys.stdout=_oldout\nsys.stderr=_olderr")}
+}
+async function checkExercise(){
+ const c=document.getElementById("exerciseConsole");c.textContent="运行中...";
+ const e=exercises[currentExercise];const out=await runPython(document.getElementById("exerciseEditor").value);c.textContent=out||"(无输出)";state.runs++;
+ if(out.trim().endsWith(e.expected)){if(!state.exercises.includes(e.id))state.exercises.push(e.id);c.textContent+="\n\n✓ 自动检查通过"}
+ else c.textContent+=`\n\n✗ 预期输出应以：${e.expected} 结尾`;
+ save();renderExercises()
+}
+async function runIDE(){const c=document.getElementById("codeConsole");c.textContent="运行中...";const out=await runPython(document.getElementById("codeEditor").value);c.textContent=out||"(程序运行成功，无输出)";state.runs++;save()}
+function loadExample(){document.getElementById("codeEditor").value=`print("Hello, Python!")\n\nname = "Ada"\nage = 20\n\nprint("我的名字是", name)\nprint("我今年", age, "岁")`}
+function renderQuiz(){
+ const el=document.getElementById("quizList");el.innerHTML="";
+ quiz.forEach((x,i)=>{const c=document.createElement("div");c.className="card quizcard";c.innerHTML=`<strong>${i+1}. ${x.q}</strong>`+x.ops.map((o,j)=>`<label class="option"><input type="radio" name="q${i}" value="${j}"> ${o}</label>`).join("")+`<div id="fb${i}" class="small"></div>`;el.appendChild(c)})
+}
+function submitQuiz(){
+ let s=0;quiz.forEach((x,i)=>{const sel=document.querySelector(`input[name=q${i}]:checked`);const v=sel?Number(sel.value):-1;const fb=document.getElementById("fb"+i);
+ if(v===x.a){s++;fb.innerHTML=`<span class="goodtxt">✓ 正确</span> ${x.why}`}
+ else{fb.innerHTML=`<span class="badtxt">✗ 正确答案：${x.ops[x.a]}</span> ${x.why}`;if(!state.mistakes.includes(i))state.mistakes.push(i)}})
+ const p=Math.round(s/quiz.length*100);state.quizBest=Math.max(state.quizBest,p);document.getElementById("quizScore").textContent=`${s}/${quiz.length} · ${p}%`;save()
+}
+function renderMistakes(){const el=document.getElementById("mistakeList");if(!state.mistakes.length){el.innerHTML=`<p class="muted">目前没有错题。</p>`;return}el.innerHTML=state.mistakes.map(i=>`<div class="mistake"><strong>${quiz[i].q}</strong><div>正确答案：${quiz[i].ops[quiz[i].a]}</div><div class="muted">${quiz[i].why}</div></div>`).join("")}
+function refresh(){
+ const lp=state.lessons.length/lessons.length,ep=state.exercises.length/exercises.length,qp=state.quizBest/100,p=Math.round((lp*.55+ep*.3+qp*.15)*100);
+ document.getElementById("statL").textContent=`${state.lessons.length}/${lessons.length}`;document.getElementById("statE").textContent=`${state.exercises.length}/${exercises.length}`;
+ document.getElementById("statQ").textContent=state.quizBest+"%";document.getElementById("statR").textContent=state.runs;document.getElementById("progressText").textContent=p+"%";document.getElementById("progressBar").style.width=p+"%";
+ const nl=lessons.find(l=>!state.lessons.includes(l.id));const ne=exercises.find(e=>!state.exercises.includes(e.id));
+ document.getElementById("today").innerHTML=`<div class="task"><b>①</b><div><strong>下一课</strong><br><span class="muted">${nl?nl.title:"课程已完成"}</span></div></div><div class="task"><b>②</b><div><strong>下一题</strong><br><span class="muted">${ne?ne.title:"练习已完成"}</span></div></div><div class="task"><b>③</b><div><strong>Code Lab</strong><br><span class="muted">把今天的示例至少改动 2 次并重新运行。</span></div></div>`
+}
+function continueLearning(){const i=lessons.findIndex(l=>!state.lessons.includes(l.id));currentLesson=i<0?0:i;renderLessons();showView("learn")}
+renderLessons();renderExercises();renderQuiz();loadExample();refresh();
+</script>
+</body>
+</html>
